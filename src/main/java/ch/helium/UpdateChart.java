@@ -58,7 +58,7 @@ public class UpdateChart {
             }
         });
 
-        final JFreeChart barChart = ChartFactory.createXYBarChart("Helium Miner Rewards",
+        final JFreeChart chart = ChartFactory.createXYBarChart("Helium Miner Rewards",
                 "Month",
                 true,
                 "HNT Rewards",
@@ -67,10 +67,11 @@ public class UpdateChart {
                 true,
                 false,
                 false);
+        
         final int width = 1000;
         final int height = 500;
         final File outputFile = new File("chart.png");
-        ChartUtils.saveChartAsPNG(outputFile, barChart, width, height);
+        ChartUtils.saveChartAsPNG(outputFile, chart, width, height);
     }
 
     private static String getYearAndMonth(final File file) {

@@ -1,5 +1,6 @@
 package ch.helium;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.data.time.Month;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -67,7 +70,16 @@ public class UpdateChart {
                 true,
                 false,
                 false);
-        
+        chart.getXYPlot().setBackgroundPaint(Color.white);
+        chart.getXYPlot().setDomainGridlinePaint(Color.lightGray);
+        chart.getXYPlot().setRangeGridlinePaint(Color.lightGray);
+        final XYBarRenderer renderer = (XYBarRenderer) chart.getXYPlot().getRenderer();
+        renderer.setSeriesPaint(0, new Color(255, 166, 0));
+        renderer.setSeriesPaint(1, new Color(255, 99, 97));
+        renderer.setSeriesPaint(2, new Color(188, 80, 144));
+        renderer.setSeriesPaint(3, new Color(88, 80, 141));
+        renderer.setSeriesPaint(4, new Color(0, 63, 92));
+        renderer.setBarPainter(new StandardXYBarPainter());
         final int width = 1000;
         final int height = 500;
         final File outputFile = new File("chart.png");

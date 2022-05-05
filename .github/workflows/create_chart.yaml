@@ -1,0 +1,45 @@
+name: Create chart
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 5 * * 1
+
+permissions:
+  contents: write
+
+jobs:
+  create_chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Cache the Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Create chart
+        run: mvn compile exec:java -Dexec.mainClass=ch.helium.UpdateChart
+
+      - name: Commit file
+        id: commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add chart.png
+          git diff --quiet && git diff --staged --quiet || git commit -am "Updated chart"
+          echo ::set-output name=status::success
+
+      - name: GitHub push
+        if: steps.commit.output.status != 'success'
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

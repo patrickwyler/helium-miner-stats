@@ -1,0 +1,44 @@
+name: Get daily helium miner stats
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 2 * * *
+
+permissions:
+  contents: write
+
+jobs:
+  auto_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download helium stats
+        id: download
+        run: |
+          mkdir -p data
+          cd data
+          curl -o $(date -d "yesterday" '+%F').json \
+          -H 'accept: application/json' \
+          -H 'accept-language: de-CH,de-DE;q=0.9,de;q=0.8,en-US;q=0.7,en;q=0.6' \
+          -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36' \
+          'https://api.helium.io/v1/hotspots/113M3PcKpZRsdBhzjJZ9nxGK3pXDfqKGQqzb8p1CRmYQ7gyBT8U/rewards/sum?min_time='"$(date -u '+%F')"'T00%3A01%3A00.000Z&max_time='"$(date -u '+%F')"'T23%3A59%3A59.000Z'
+          cd ..
+
+      - name: Commit file
+        id: commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/$(date -d "yesterday" '+%F').json
+          git diff --quiet && git diff --staged --quiet || git commit -am "Updated helium stat data"
+          echo ::set-output name=status::success
+
+      - name: GitHub push
+        if: steps.commit.output.status != 'success'
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}

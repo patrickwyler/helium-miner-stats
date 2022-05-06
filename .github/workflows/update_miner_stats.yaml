@@ -24,7 +24,7 @@ jobs:
           -H 'accept: application/json' \
           -H 'accept-language: de-CH,de-DE;q=0.9,de;q=0.8,en-US;q=0.7,en;q=0.6' \
           -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36' \
-          'https://api.helium.io/v1/hotspots/113M3PcKpZRsdBhzjJZ9nxGK3pXDfqKGQqzb8p1CRmYQ7gyBT8U/rewards/sum?min_time='"$(date -u '+%F')"'T00%3A01%3A00.000Z&max_time='"$(date -u '+%F')"'T23%3A59%3A59.000Z'
+          'https://api.helium.io/v1/hotspots/113M3PcKpZRsdBhzjJZ9nxGK3pXDfqKGQqzb8p1CRmYQ7gyBT8U/rewards/sum?min_time='"$(date -d "yesterday" '+%F')"'T00%3A01%3A00.000Z&max_time='"$(date -d "yesterday" '+%F')"'T23%3A59%3A59.000Z'
           cd ..
 
       - name: Commit file

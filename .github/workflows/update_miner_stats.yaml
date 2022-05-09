@@ -21,6 +21,7 @@ jobs:
           mkdir -p data
           cd data
           curl -o $(date -d "yesterday" '+%F').json \
+          -m 60 \
           -H 'accept: application/json' \
           -H 'accept-language: de-CH,de-DE;q=0.9,de;q=0.8,en-US;q=0.7,en;q=0.6' \
           -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36' \

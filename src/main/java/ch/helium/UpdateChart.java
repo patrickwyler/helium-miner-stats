@@ -1,5 +1,9 @@
 package ch.helium;
 
+import static java.awt.Color.lightGray;
+import static java.awt.Color.white;
+import static org.jfree.chart.axis.DateTickUnitType.MONTH;
+
 import java.awt.Color;
 import java.io.File;
 import java.io.FileReader;
@@ -13,6 +17,8 @@ import java.util.HashMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
@@ -22,10 +28,7 @@ import org.jfree.data.time.TimeSeriesCollection;
 
 import com.google.gson.Gson;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import ch.helium.models.DataEntry;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,13 +37,17 @@ public class UpdateChart {
     public static void main(final String[] args) throws IOException {
         LOG.info("Update bar chart image");
 
-        final File dataDir = Paths.get("data").toFile();
-        final File[] files = dataDir.listFiles();
+        final HashMap<String, Float> rewardsPerMonth = parseData();
+        final TimeSeries timeSeries = createTimeSeries(rewardsPerMonth);
+        final JFreeChart chart = createChart(timeSeries);
+        saveChart(chart);
+    }
 
-        final TimeSeries timeSeries = new TimeSeries("Rewards per month", "Month", "Rewards");
-
+    private static HashMap<String, Float> parseData() {
         final Gson gson = new Gson();
         final HashMap<String, Float> rewardsPerMonth = new HashMap<>();
+        final File dataDir = Paths.get("data").toFile();
+        final File[] files = dataDir.listFiles();
         Arrays.stream(files).forEach(file -> {
             try {
                 final DataEntry dataEntry = gson.fromJson(new FileReader(file), DataEntry.class);
@@ -50,17 +57,24 @@ public class UpdateChart {
                 LOG.warn(e.getMessage());
             }
         });
+        return rewardsPerMonth;
+    }
 
+    private static TimeSeries createTimeSeries(final HashMap<String, Float> rewardsPerMonth) {
+        final TimeSeries timeSeries = new TimeSeries("Rewards per month", "Month", "Rewards");
         final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
-
         rewardsPerMonth.forEach((key, value) -> {
             try {
+                LOG.debug("Add timeseries {} {}", key, value);
                 timeSeries.add(new Month(formatter.parse(key)), value);
             } catch (final ParseException e) {
                 LOG.warn(e.getMessage());
             }
         });
+        return timeSeries;
+    }
 
+    private static JFreeChart createChart(final TimeSeries timeSeries) {
         final JFreeChart chart = ChartFactory.createXYBarChart("Helium Miner Rewards",
                 "Month",
                 true,
@@ -70,17 +84,21 @@ public class UpdateChart {
                 true,
                 false,
                 false);
-        chart.getXYPlot().setBackgroundPaint(Color.white);
-        chart.getXYPlot().setDomainGridlinePaint(Color.lightGray);
-        chart.getXYPlot().setRangeGridlinePaint(Color.lightGray);
+        chart.getXYPlot().setBackgroundPaint(white);
+        chart.getXYPlot().setDomainGridlinePaint(lightGray);
+        chart.getXYPlot().setRangeGridlinePaint(lightGray);
+
         final XYBarRenderer renderer = (XYBarRenderer) chart.getXYPlot().getRenderer();
         renderer.setSeriesPaint(0, new Color(255, 166, 0));
-        renderer.setSeriesPaint(1, new Color(255, 99, 97));
-        renderer.setSeriesPaint(2, new Color(188, 80, 144));
-        renderer.setSeriesPaint(3, new Color(88, 80, 141));
-        renderer.setSeriesPaint(4, new Color(0, 63, 92));
         renderer.setBarPainter(new StandardXYBarPainter());
-        final int width = 1000;
+
+        final DateAxis axis = (DateAxis) chart.getXYPlot().getDomainAxis();
+        axis.setTickUnit(new DateTickUnit(MONTH, 1, new SimpleDateFormat("MMM-yyyy")));
+        return chart;
+    }
+
+    private static void saveChart(final JFreeChart chart) throws IOException {
+        final int width = 800;
         final int height = 500;
         final File outputFile = new File("chart.png");
         ChartUtils.saveChartAsPNG(outputFile, chart, width, height);
@@ -88,37 +106,5 @@ public class UpdateChart {
 
     private static String getYearAndMonth(final File file) {
         return file.getName().subSequence(0, 7).toString();
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public class DataEntry {
-        Meta meta;
-        Data data;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public class Data {
-        private float total;
-        private float sum;
-        private float stddev;
-        private float min;
-        private float median;
-        private float max;
-        private float avg;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public class Meta {
-        private String min_time;
-        private String max_time;
     }
 }

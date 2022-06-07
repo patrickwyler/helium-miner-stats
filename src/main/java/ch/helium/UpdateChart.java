@@ -2,7 +2,9 @@ package ch.helium;
 
 import static java.awt.Color.lightGray;
 import static java.awt.Color.white;
+import static org.jfree.chart.ChartUtils.saveChartAsPNG;
 import static org.jfree.chart.axis.DateTickUnitType.MONTH;
+import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
 
 import java.awt.Color;
 import java.io.File;
@@ -15,11 +17,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.data.time.Month;
@@ -35,12 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateChart {
 
     public static void main(final String[] args) throws IOException {
-        LOG.info("Update bar chart image");
-
+        LOG.info("Update bar chart image..");
         final HashMap<String, Float> rewardsPerMonth = parseData();
         final TimeSeries timeSeries = createTimeSeries(rewardsPerMonth);
         final JFreeChart chart = createChart(timeSeries);
         saveChart(chart);
+        LOG.info("Bar chart updated.");
     }
 
     private static HashMap<String, Float> parseData() {
@@ -61,7 +61,7 @@ public class UpdateChart {
     }
 
     private static TimeSeries createTimeSeries(final HashMap<String, Float> rewardsPerMonth) {
-        final TimeSeries timeSeries = new TimeSeries("Rewards per month", "Month", "Rewards");
+        final TimeSeries timeSeries = new TimeSeries("Rewards", "Month", "Rewards");
         final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM");
         rewardsPerMonth.forEach((key, value) -> {
             try {
@@ -78,10 +78,10 @@ public class UpdateChart {
         final JFreeChart chart = ChartFactory.createXYBarChart("Helium Miner Rewards",
                 "Month",
                 true,
-                "HNT Rewards",
+                "HNT",
                 new TimeSeriesCollection(timeSeries),
-                PlotOrientation.VERTICAL,
-                true,
+                VERTICAL,
+                false,
                 false,
                 false);
         chart.getXYPlot().setBackgroundPaint(white);
@@ -101,7 +101,7 @@ public class UpdateChart {
         final int width = 800;
         final int height = 500;
         final File outputFile = new File("chart.png");
-        ChartUtils.saveChartAsPNG(outputFile, chart, width, height);
+        saveChartAsPNG(outputFile, chart, width, height);
     }
 
     private static String getYearAndMonth(final File file) {

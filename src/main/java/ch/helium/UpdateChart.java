@@ -5,6 +5,7 @@ import static java.awt.Color.white;
 import static org.jfree.chart.ChartUtils.saveChartAsPNG;
 import static org.jfree.chart.axis.DateTickUnitType.MONTH;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
+import static org.jfree.chart.ui.RectangleEdge.BOTTOM;
 
 import java.awt.Color;
 import java.io.File;
@@ -22,6 +23,8 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.chart.ui.HorizontalAlignment;
 import org.jfree.data.time.Month;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -38,7 +41,7 @@ public class UpdateChart {
         LOG.info("Update bar chart image..");
         final HashMap<String, Float> rewardsPerMonth = parseData();
         final TimeSeries timeSeries = createTimeSeries(rewardsPerMonth);
-        final JFreeChart chart = createChart(timeSeries);
+        final JFreeChart chart = createChart(timeSeries,rewardsPerMonth.values().stream().reduce(0f, Float::sum));
         saveChart(chart);
         LOG.info("Bar chart updated.");
     }
@@ -74,7 +77,7 @@ public class UpdateChart {
         return timeSeries;
     }
 
-    private static JFreeChart createChart(final TimeSeries timeSeries) {
+    private static JFreeChart createChart(final TimeSeries timeSeries, final Float total) {
         final JFreeChart chart = ChartFactory.createXYBarChart("Helium Miner Rewards",
                 "Month",
                 true,
@@ -87,13 +90,18 @@ public class UpdateChart {
         chart.getXYPlot().setBackgroundPaint(white);
         chart.getXYPlot().setDomainGridlinePaint(lightGray);
         chart.getXYPlot().setRangeGridlinePaint(lightGray);
-
         final XYBarRenderer renderer = (XYBarRenderer) chart.getXYPlot().getRenderer();
         renderer.setSeriesPaint(0, new Color(255, 166, 0));
         renderer.setBarPainter(new StandardXYBarPainter());
 
         final DateAxis axis = (DateAxis) chart.getXYPlot().getDomainAxis();
         axis.setTickUnit(new DateTickUnit(MONTH, 1, new SimpleDateFormat("MMM-yyyy")));
+
+        final TextTitle info = new TextTitle("Total: " + total + " HNT");
+        info.setPosition( BOTTOM);
+        info.setHorizontalAlignment(HorizontalAlignment.LEFT );
+        chart.addSubtitle( info );
+
         return chart;
     }
 

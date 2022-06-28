@@ -5,6 +5,7 @@ import static java.awt.Color.white;
 import static org.jfree.chart.ChartUtils.saveChartAsPNG;
 import static org.jfree.chart.axis.DateTickUnitType.MONTH;
 import static org.jfree.chart.plot.PlotOrientation.VERTICAL;
+import static org.jfree.chart.ui.HorizontalAlignment.LEFT;
 import static org.jfree.chart.ui.RectangleEdge.BOTTOM;
 
 import java.awt.Color;
@@ -15,7 +16,9 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -24,7 +27,6 @@ import org.jfree.chart.axis.DateTickUnit;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.chart.ui.HorizontalAlignment;
 import org.jfree.data.time.Month;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -41,7 +43,7 @@ public class UpdateChart {
         LOG.info("Update bar chart image..");
         final HashMap<String, Float> rewardsPerMonth = parseData();
         final TimeSeries timeSeries = createTimeSeries(rewardsPerMonth);
-        final JFreeChart chart = createChart(timeSeries,rewardsPerMonth.values().stream().reduce(0f, Float::sum));
+        final JFreeChart chart = createChart(timeSeries, rewardsPerMonth.values().stream().reduce(0f, Float::sum));
         saveChart(chart);
         LOG.info("Bar chart updated.");
     }
@@ -96,13 +98,16 @@ public class UpdateChart {
 
         final DateAxis axis = (DateAxis) chart.getXYPlot().getDomainAxis();
         axis.setTickUnit(new DateTickUnit(MONTH, 1, new SimpleDateFormat("MMM-yyyy")));
-
-        final TextTitle info = new TextTitle("Total: " + total + " HNT");
-        info.setPosition( BOTTOM);
-        info.setHorizontalAlignment(HorizontalAlignment.LEFT );
-        chart.addSubtitle( info );
+        chart.setSubtitles(List.of(getTextTitle(new Date().toString()), getTextTitle("Total: " + total + " HNT")));
 
         return chart;
+    }
+
+    private static TextTitle getTextTitle(final String text) {
+        final TextTitle infoD = new TextTitle(text);
+        infoD.setPosition(BOTTOM);
+        infoD.setHorizontalAlignment(LEFT);
+        return infoD;
     }
 
     private static void saveChart(final JFreeChart chart) throws IOException {
